@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stages bar - CloudSense Recruitment Application</title>
+    <link rel="stylesheet" href="./css/bootstrap.css">
+    <link rel="stylesheet" href="./css/core.css">
+    <link rel="stylesheet" href="./css/forms.css">
+
+    <script src="angular.min.js"></script>
+    <script src="underscore-min.js"></script>
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body ng-app="app">
+    <div class="" style="">
+        <h3 class="text-gray">
+            Stages progress bar <br> <small class="text-muted">Angular directive <strong>stages</strong></small>
+        </h3>
+
+        <stages>
+            <stage ng-repeat="n in _.range(1,6)" title="Stage {{n}}">Stage {{n}}</stage>
+            <stage title="Complex stage">
+                You can add custom complex view here with more <code>html</code> tags and <code>js</code> code.
+            </stage>
+        </stages>
+    </div>
+
+    <script>
+        angular.module('components', [])
+            .directive('stages', function () {
+                return {
+                    restrict: 'E',
+                    transclude: true,
+                    scope: {},
+                    controller: function ($scope, $element) {
+                        var stages = $scope.stages = [];
+                        var progress = $scope.progress = 0;
+
+                        $scope.select = function (stage) {
+                            angular.forEach(stages, function (stage) {
+                                stage.selected = false;
+                                stage.completed = false;
+                            });
+
+                            var selectedIndex = stages.indexOf(stage);
+                            for (var i = 0; i < selectedIndex; i++) {
+                                stages[i].completed = true;
+                            }
+                            stage.selected = true;
+                            progress = (selectedIndex / stages.length) * 100;
+                            console.log(progress);
+                        }
+                        $scope.getStyle = function () {
+                            return {
+                                width: progress + "%"
+                            }
+                        }
+
+                        this.addStage = function (stage) {
+                            if (stages.length == 0) $scope.select(stage);
+                            stages.push(stage);
+                        }
+                    },
+                    template:
+                        '<div class="form-wizard">' +
+                            '<ul class="tabs">' +
+                                '<li ng-repeat="stage in stages" class="ms-hover" ng-class="{active:stage.selected, completed:stage.completed}">' +
+                                    '<a href="" ng-click="select(stage)">{{stage.title}}</a>' +
+                                '</li>' +
+                            '</ul>' +
+                            '<div class="progress-indicator" ng-style="getStyle()"> <span></span> </div>' +
+                            '<div class="tab-content" ng-transclude></div>' +
+                            '</div>',
+                    replace: true
+                };
+            })
+            .directive('stage', function () {
+                return {
+                    require: '^stages',
+                    restrict: 'E',
+                    transclude: true,
+                    scope: { title: '@' },
+                    link: function (scope, element, attrs, stagesController) {
+                        stagesController.addStage(scope);
+                    },
+                    template:
+                        '<div class="tab-pane" ng-class="{active: selected}" ng-transclude>' +
+                        '</div>',
+                    replace: true
+                };
+            });
+
+        angular
+            .module('app', ['components'])
+            .run(function ($rootScope) {
+                $rootScope._ = _;
+            });
+    </script>
+</body>
+</html>
